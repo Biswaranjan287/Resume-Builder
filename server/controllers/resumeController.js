@@ -1,6 +1,6 @@
 import imageKit from "../configs/imageKit.js"
 import Resume from "../models/Resume.js"
-import fs from 'fs';
+import fs from 'fs/promises';
 
 
 /* controller for creating a new resume */
@@ -90,7 +90,12 @@ export const updateResume = async (req, res) => {
         const { resumeId, resumeData, removeBackground } = req.body
         const image = req.file
 
-        let resumeDataCopy = JSON.parse(resumeData)
+        let resumeDataCopy;
+        if (typeof resumeData === 'string') {
+            resumeDataCopy = await JSON.parse(resumeData)
+        } else {
+            resumeDataCopy = structuredClone(resumeData)
+        }
 
         if (image) {
 

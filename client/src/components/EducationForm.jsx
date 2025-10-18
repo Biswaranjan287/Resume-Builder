@@ -67,7 +67,7 @@ const EducationForm = ({ data, onChange }) => {
 
                             </div>
 
-                                <input value={education.gpa || ""} onChange={(e) => updateEducation(index, "field", e.target.value)} type="gpa" className='px-3 py-2 text-sm' placeholder="GPA (optional)" />
+                                <input value={education.gpa || ""} onChange={(e) => updateEducation(index, "gpa", e.target.value)} type="gpa" className='px-3 py-2 text-sm' placeholder="GPA (optional)" />
 
                         </div>
                     ))}
