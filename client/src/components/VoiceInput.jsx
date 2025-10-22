@@ -85,6 +85,15 @@ const VoiceInput = ({ onTranscript, onFinalTranscript, focusedField }) => {
         return <div className="text-sm text-red-600">Voice not supported — use Chrome/Edge on localhost or HTTPS.</div>
     }
 
+    if (!window.isSecureContext) {
+        return (
+            <div className="text-sm text-red-600">
+                Voice input requires HTTPS. Please open the site with https://
+            </div>
+        )
+    }
+
+
     return (
         <div className="flex items-center gap-3 mt-4">
             {!listening ? (
