@@ -1,7 +1,9 @@
 import { GraduationCap, Plus, Trash2 } from 'lucide-react'
-import React from 'react'
+import React, { useRef } from 'react'
 
-const EducationForm = ({ data, onChange }) => {
+const EducationForm = ({ data, onChange, focusedField, setFocusedField }) => {
+
+    const listeningRef = useRef(false);
 
     const addEducation = () => {
         const newEducation = {
@@ -57,17 +59,86 @@ const EducationForm = ({ data, onChange }) => {
 
                             <div className='grid md:grid-cols-2 gap-3'>
 
-                                <input value={education.institution || ""} onChange={(e) => updateEducation(index, "institution", e.target.value)} type="text" placeholder='Institution Name' className='px-3 py-2 text-sm ' />
+                                <input
+                                    value={education.institution || ""}
+                                    onChange={(e) => updateEducation(index, "institution", e.target.value)}
+                                    onFocus={() => setFocusedField(`education-${index}-institution`)}
+                                    onBlur={() => {
+                                        setTimeout(() => {
+                                            if (setFocusedField && focusedField === 'professional_summary') {
+                                                if (!listeningRef?.current) setFocusedField(null);
+                                            }
+                                        }, 100);
+                                    }}
+                                    type="text"
+                                    placeholder='Institution Name'
+                                    className='px-3 py-2 text-sm'
+                                />
 
-                                <input value={education.degree || ""} onChange={(e) => updateEducation(index, "degree", e.target.value)} type="text" placeholder="Degree(e.g., Bachelor's, Master's)" className='px-3 py-2 text-sm ' />
+                                <input
+                                    value={education.degree || ""}
+                                    onChange={(e) => updateEducation(index, "degree", e.target.value)}
+                                    onFocus={() => setFocusedField(`education-${index}-degree`)}
+                                    onBlur={() => {
+                                        setTimeout(() => {
+                                            if (setFocusedField && focusedField === 'professional_summary') {
+                                                if (!listeningRef?.current) setFocusedField(null);
+                                            }
+                                        }, 100);
+                                    }}
+                                    type="text"
+                                    placeholder="Degree (e.g., Bachelor's, Master's)"
+                                    className='px-3 py-2 text-sm'
+                                />
 
-                                <input value={education.field || ""} onChange={(e) => updateEducation(index, "field", e.target.value)} type="text" className='px-3 py-2 text-sm' placeholder="Field of Study" />
+                                <input
+                                    value={education.field || ""}
+                                    onChange={(e) => updateEducation(index, "field", e.target.value)}
+                                    onFocus={() => setFocusedField(`education-${index}-field`)}
+                                    onBlur={() => {
+                                        setTimeout(() => {
+                                            if (setFocusedField && focusedField === 'professional_summary') {
+                                                if (!listeningRef?.current) setFocusedField(null);
+                                            }
+                                        }, 100);
+                                    }}
+                                    type="text"
+                                    placeholder="Field of Study"
+                                    className='px-3 py-2 text-sm'
+                                />
 
-                                <input value={education.graduation_date || ""} onChange={(e) => updateEducation(index, "graduation_date", e.target.value)} type="month" className='px-3 py-2 text-sm' />
+                                <input
+                                    value={education.graduation_date || ""}
+                                    onChange={(e) => updateEducation(index, "graduation_date", e.target.value)}
+                                    onFocus={() => setFocusedField(`education-${index}-graduation_date`)}
+                                    onBlur={() => {
+                                        setTimeout(() => {
+                                            if (setFocusedField && focusedField === 'professional_summary') {
+                                                if (!listeningRef?.current) setFocusedField(null);
+                                            }
+                                        }, 100);
+                                    }}
+                                    type="month"
+                                    className='px-3 py-2 text-sm'
+                                />
 
                             </div>
 
-                                <input value={education.gpa || ""} onChange={(e) => updateEducation(index, "gpa", e.target.value)} type="gpa" className='px-3 py-2 text-sm' placeholder="GPA (optional)" />
+                            <input
+                                value={education.gpa || ""}
+                                onChange={(e) => updateEducation(index, "gpa", e.target.value)}
+                                onFocus={() => setFocusedField(`education-${index}-gpa`)}
+                                onBlur={() => {
+                                    setTimeout(() => {
+                                        if (setFocusedField && focusedField === 'professional_summary') {
+                                            if (!listeningRef?.current) setFocusedField(null);
+                                        }
+                                    }, 100);
+                                }}
+                                type="text"
+                                placeholder="GPA (optional)"
+                                className='px-3 py-2 text-sm'
+                            />
 
                         </div>
                     ))}

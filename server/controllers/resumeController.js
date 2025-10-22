@@ -1,6 +1,6 @@
 import imageKit from "../configs/imageKit.js"
 import Resume from "../models/Resume.js"
-import fs from 'fs/promises';
+import fs from 'fs';
 
 
 /* controller for creating a new resume */

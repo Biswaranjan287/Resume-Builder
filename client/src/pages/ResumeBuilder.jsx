@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeftIcon, Briefcase, ChevronLeft, ChevronRight, Download, EyeIcon, EyeOffIcon, FileText, FolderIcon, GraduationCap, Share2Icon, Sparkles, User } from 'lucide-react'
 import PersonalInfoForm from '../components/PersonalInfoForm'
@@ -13,11 +13,15 @@ import SkillsForm from '../components/SkillsForm'
 import { useSelector } from 'react-redux'
 import api from '../configs/api'
 import toast from 'react-hot-toast'
+import VoiceInput from '../components/VoiceInput'
+
 
 const ResumeBuilder = () => {
 
     const { resumeId } = useParams()
     const { token } = useSelector(state => state.auth)
+    const [focusedField, setFocusedField] = useState(null)
+    const listeningRef = useRef(false);
 
     const [resumeData, setResumeData] = useState({
         _id: '',
@@ -115,12 +119,107 @@ const ResumeBuilder = () => {
             toast.success(data.message)
 
         } catch (error) {
+            console.error("Server-Side Update Error Details:", error);
             console.error("Error saving resume:", error)
         }
     }
 
+    /* helper to clean spoken text for specific fields */
+    const cleanForField = useCallback((field, text) => {
+        const trimmed = String(text || '').trim()
+        if (field === 'email') {
+            const m = trimmed.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,})/)
+            return m ? m[1] : trimmed.replace(/\s+/g, '')
+        }
+        if (field === 'phone') {
+            const m = trimmed.match(/(\+?\d[\d\s-]{6,}\d)/)
+            return m ? m[1].replace(/\s|-/g, '') : trimmed.replace(/\D/g, '')
+        }
+        if (field === 'full_name') {
+            return trimmed.replace(/^name\s*(is|:)?\s*/i, '')
+        }
+        return trimmed
+    }, [])
+
+    /* called from VoiceInput (interim & final) */
+    const handleVoiceInput = useCallback((text) => {
+        if (!focusedField) return;
+
+        const cleaned = cleanForField(focusedField, text);
+
+        // 1️⃣ Personal info fields
+        if (['full_name', 'email', 'phone', 'location', 'professional', 'linkedin', 'website'].includes(focusedField)) {
+            setResumeData(prev => ({
+                ...prev,
+                personal_info: {
+                    ...prev.personal_info,
+                    [focusedField]: cleaned
+                }
+            }));
+        }
+
+        // 2️⃣ Professional summary
+        else if (focusedField === 'professional_summary') {
+            setResumeData(prev => ({
+                ...prev,
+                professional_summary: cleaned
+            }));
+        }
+
+        // 3️⃣ Experience fields
+        else if (focusedField.startsWith('experience-')) {
+            const parts = focusedField.split('-');
+            const index = parseInt(parts[1], 10);
+            const field = parts.slice(2).join('-');
+
+            setResumeData(prev => {
+                const updatedExperiences = [...prev.experience];
+                if (!updatedExperiences[index]) return prev;
+                updatedExperiences[index] = { ...updatedExperiences[index], [field]: cleaned };
+                return { ...prev, experience: updatedExperiences };
+            });
+        }
+
+        // 4️⃣ Education fields
+        else if (focusedField.startsWith('education-')) {
+            const parts = focusedField.split('-');
+            const index = parseInt(parts[1], 10);
+            const field = parts.slice(2).join('-');
+
+            setResumeData(prev => {
+                const updatedEducation = [...prev.education];
+                if (!updatedEducation[index]) return prev;
+                updatedEducation[index] = { ...updatedEducation[index], [field]: cleaned };
+                return { ...prev, education: updatedEducation };
+            });
+        }
+
+        // 5️⃣ Project fields
+        else if (focusedField.startsWith('project-')) {
+            const parts = focusedField.split('-');
+            const index = parseInt(parts[1], 10);
+            const field = parts.slice(2).join('-');
+
+            setResumeData(prev => {
+                const updatedProjects = [...prev.project];
+                if (!updatedProjects[index]) return prev;
+                updatedProjects[index] = { ...updatedProjects[index], [field]: cleaned };
+                return { ...prev, project: updatedProjects };
+            });
+        }
+
+        // 6️⃣ Skills
+        else if (focusedField === 'skills') {
+            setResumeData(prev => ({
+                ...prev,
+                skills: cleaned.split(',').map(s => s.trim())
+            }));
+        }
+    }, [focusedField, cleanForField]);
+
+
     return (
-        <div>
+        <div> 
 
             <div className='max-w-7xl mx-auto px-4 py-6'>
                 <Link to={'/app'} className='inline-flex gap-2 items-center text-slate-500 hover:text-slate-700 transition-all'>
@@ -162,33 +261,89 @@ const ResumeBuilder = () => {
                             {/* Form Content */}
                             <div className='space-y-6'>
                                 {activeSection.id === 'personal' && (
-                                    <PersonalInfoForm data={resumeData.personal_info} onChange={(data) => setResumeData(prev => ({ ...prev, personal_info: data }))} removeBackground={removeBackground} setRemoveBackground={setRemoveBackground} />
+                                    <PersonalInfoForm
+                                        data={resumeData.personal_info}
+                                        onChange={(data) => setResumeData(prev => ({ ...prev, personal_info: data }))}
+                                        removeBackground={removeBackground}
+                                        setRemoveBackground={setRemoveBackground}
+                                        setFocusedField={setFocusedField}
+                                        focusedField={focusedField}
+                                    />
                                 )}
 
                                 {activeSection.id === 'summary' && (
-                                    <ProfessionalSummaryForm data={resumeData.professional_summary} onChange={(data) => setResumeData(prev => ({ ...prev, professional_summary: data }))} setResumeData={setResumeData} />
+                                    <ProfessionalSummaryForm
+                                        data={resumeData.professional_summary}
+                                        onChange={(data) => setResumeData(prev => ({ ...prev, professional_summary: data }))}
+                                        setResumeData={setResumeData}
+                                        focusedField={focusedField}
+                                        setFocusedField={setFocusedField}
+                                    />
                                 )}
 
                                 {activeSection.id === 'experience' && (
-                                    <ExperienceForm data={resumeData.experience} onChange={(data) => setResumeData(prev => ({ ...prev, experience: data }))} />
+                                    <ExperienceForm
+                                        data={resumeData.experience}
+                                        onChange={(data) => setResumeData(prev => ({ ...prev, experience: data }))}
+                                        focusedField={focusedField}
+                                        setFocusedField={setFocusedField}
+                                    />
                                 )}
 
                                 {activeSection.id === 'education' && (
-                                    <EducationForm data={resumeData.education} onChange={(data) => setResumeData(prev => ({ ...prev, education: data }))} />
+                                    <EducationForm
+                                        data={resumeData.education}
+                                        onChange={(data) => setResumeData(prev => ({ ...prev, education: data }))}
+                                        focusedField={focusedField}
+                                        setFocusedField={setFocusedField}
+                                    />
                                 )}
 
+
                                 {activeSection.id === 'projects' && (
-                                    <ProjectForm data={resumeData.project} onChange={(data) => setResumeData(prev => ({ ...prev, project: data }))} />
+                                    <ProjectForm
+                                        data={resumeData.project}
+                                        onChange={(data) => setResumeData(prev => ({ ...prev, project: data }))}
+                                        focusedField={focusedField}
+                                        setFocusedField={setFocusedField}
+                                    />
                                 )}
 
                                 {activeSection.id === 'skills' && (
-                                    <SkillsForm data={resumeData.skills} onChange={(data) => setResumeData(prev => ({ ...prev, skills: data }))} />
+                                    <SkillsForm
+                                        data={resumeData.skills}
+                                        onChange={(data) => setResumeData(prev => ({ ...prev, skills: data }))}
+                                        focusedField={focusedField}
+                                        setFocusedField={setFocusedField}
+                                        handleVoiceInput={(text) => text} // Returns the spoken text
+                                    />
                                 )}
                             </div>
-                            <button onClick={() => {toast.promise(saveResume, {loading: 'Saving...'})}} className='bg-gradient-to-br from-green-100 to-green-200 ring-green-300 text-green-600 ring hover:ring-green-400 transition-all rounded-md px-6 py-2 mt-6 text-sm'>
-                                Save Changes
-                            </button>
+
+                            <div className="mt-2 flex flex-col md:flex-row justify-between">
+                                {/* Save Button */}
+                                <button
+                                    onClick={() => { toast.promise(saveResume, { loading: 'Saving...' }) }}
+                                    className='bg-gradient-to-br from-green-100 to-green-200 ring-green-300 text-green-600 ring hover:ring-green-400 transition-all rounded-md px-6 py-2 mt-6 text-sm mb-1'
+                                >
+                                    Save Changes
+                                </button>
+
+                                {/* Voice Input Button */}
+                                <VoiceInput
+                                    focusedField={focusedField}
+                                    onTranscript={() => { /* ignore interim */ }}
+                                    listeningRef={listeningRef}
+                                    onFinalTranscript={(text) => {
+                                        console.log('[VoiceInput final]', { text, sessionField: focusedField })
+                                        handleVoiceInput(text, focusedField)
+                                    }}
+                                />
+
+
+                            </div>
                         </div>
+                        {/* End of Left Panel */}
                     </div>
 
                     {/* Right Panel - Preview */}
@@ -199,7 +354,9 @@ const ResumeBuilder = () => {
                                     <button onClick={handleShare} className='flex items-center p-2 px-4 gap-2 text-xs bg-gradient-to-br from-blue-100 to-blue-200 text-blue-600 rounded-lg ring-blue-300 hover:ring transition-colors'>
                                         <Share2Icon className='size-4' /> Share
                                     </button>
-                                )}
+                                )
+                                }
+
 
                                 <button onClick={changeResumeVisibility} className='flex items-center p-2 px-4 gap-2 text-xs bg-gradient-to-br from-purple-100 to-purple-200 text-purple-600 ring-purple-300 rounded-lg hover:ring transition-colors'>
                                     {resumeData.public ? <EyeIcon className='size-4' /> : <EyeOffIcon className='size-4' />}
@@ -214,6 +371,7 @@ const ResumeBuilder = () => {
 
                         <ResumePreview data={resumeData} template={resumeData.template} accentColor={resumeData.accent_color} />
                     </div>
+                    {/* End of Right Panel */}
                 </div>
             </div>
 

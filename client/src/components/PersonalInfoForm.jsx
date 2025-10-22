@@ -1,8 +1,9 @@
 import { BriefcaseBusiness, Globe, Linkedin, Mail, MapPin, Phone, User } from 'lucide-react'
-import React from 'react'
+import React, { useRef } from 'react'
 
-const PersonalInfoForm = ({ data, onChange, removeBackground, setRemoveBackground }) => {
+const PersonalInfoForm = ({ data, onChange, removeBackground, setRemoveBackground, setFocusedField, focusedField }) => {
 
+    const listeningRef = useRef(false);
     const handleChange = (field, value) => {
         onChange({ ...data, [field]: value })
     }
@@ -22,7 +23,7 @@ const PersonalInfoForm = ({ data, onChange, removeBackground, setRemoveBackgroun
             <h3 className='text-lg font-semibold text-gray-900'>Personal Information</h3>
             <p className='text-sm text-gray-600'>Get Started with the personal information</p>
             <div className='flex items-center gap-2'>
-                <label>
+                {/* <label>
                     {data.image ? (
                         <img src={typeof data.image === 'string' ? data.image : URL.createObjectURL(data.image)} alt="user-image" className='w-16 h-16 rounded-full object-cover mt-5 ring ring-slate-300 hover:opacity-80' />
                     ) : (
@@ -32,19 +33,21 @@ const PersonalInfoForm = ({ data, onChange, removeBackground, setRemoveBackgroun
                         </div>
                     )}
                     <input type="file" accept='image/jpeg, image/png' className='hidden' onChange={(e) => handleChange("image", e.target.files[0])} />
-                </label>
+                </label> */}
 
-                {typeof data.image === 'object' && (
+                {/* {typeof data.image === 'object' && (
                     <div className='flex flex-col gap-1 pl-4 text-sm'>
                         <p>Remove Background</p>
                         <label className='relative inline-flex items-center cursor-pointer text-gray-900 gap-3'>
-                            <input type="checkbox" className='sr-only peer' onChange={() => setRemoveBackground(prev => !prev)} checked={removeBackground} />
+                            <input type="checkbox" className='sr-only peer'
+                                onChange={() => setRemoveBackground(prev => !prev)} checked={removeBackground}
+                            />
                             <div className='w-9 h-5 bg-slate-300 rounded-full peer peer-checked:bg-green-600 transition-colors duration-200'>
                             </div>
                             <span className='dot absolute left-1 top-1 w-3 h-3 bg-white rounded-full transition-transform duration-200 ease-in-out peer-checked:translate-x-4'></span>
                         </label>
                     </div>
-                )}
+                )} */}
             </div>
 
             {fields.map((field) => {
@@ -56,7 +59,23 @@ const PersonalInfoForm = ({ data, onChange, removeBackground, setRemoveBackgroun
                             {field.label}
                             {field.required && <span className='text-red-500'>*</span>}
                         </label>
-                        <input type={field.type} value={data[field.key] || ""} onChange={(e) => handleChange(field.key, e.target.value)} className='mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-sm' placeholder={`Enter your ${field.label.toLowerCase()}`} required={field.required} />
+                        <input
+                            type={field.type}
+                            value={data[field.key] || ""}
+                            onChange={(e) => handleChange(field.key, e.target.value)}
+                            onFocus={() => {
+                                if (setFocusedField) {
+                                    setFocusedField(field.key);
+                                }
+                            }}
+                            onBlur={() => {
+                                if (!listeningRef.current) {  // don't clear while voice input is active
+                                    setFocusedField(null);
+                                }
+                            }}
+
+                            className='mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-sm' placeholder={`Enter your ${field.label.toLowerCase()}`} required={field.required}
+                        />
                     </div>
                 )
             })}

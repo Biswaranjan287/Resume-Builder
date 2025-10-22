@@ -1,13 +1,14 @@
 import { Briefcase, Loader2, Plus, Sparkles, Trash2 } from 'lucide-react'
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
 import api from '../configs/api'
 import toast from 'react-hot-toast'
 
-const ExperienceForm = ({ data, onChange }) => {
+const ExperienceForm = ({ data, onChange, focusedField, setFocusedField }) => {
 
     const { token } = useSelector(state => state.auth)
     const [generatingIndex, setGeneratingIndex] = useState(-1)
+    const listeningRef = useRef(false);
 
     const addExperience = () => {
         const newExperience = {
@@ -79,9 +80,37 @@ const ExperienceForm = ({ data, onChange }) => {
 
                             <div className='grid md:grid-cols-2 gap-3'>
 
-                                <input value={experience.company || ""} onChange={(e) => updateExperience(index, "company", e.target.value)} type="text" placeholder='Company Name' className='px-3 py-2 text-sm rounded-lg' />
+                                <input
+                                    value={experience.company || ""}
+                                    onChange={(e) => updateExperience(index, "company", e.target.value)}
+                                    onFocus={() => setFocusedField && setFocusedField(`experience-${index}-company`)}
+                                    onBlur={() => {
+                                        setTimeout(() => {
+                                            if (setFocusedField && focusedField === 'professional_summary') {
+                                                if (!listeningRef?.current) setFocusedField(null);
+                                            }
+                                        }, 100);
+                                    }}
+                                    type="text"
+                                    placeholder='Company Name'
+                                    className='px-3 py-2 text-sm rounded-lg'
+                                />
 
-                                <input value={experience.position || ""} onChange={(e) => updateExperience(index, "position", e.target.value)} type="text" placeholder='Job Title' className='px-3 py-2 text-sm rounded-lg' />
+                                <input
+                                    value={experience.position || ""}
+                                    onChange={(e) => updateExperience(index, "position", e.target.value)}
+                                    onFocus={() => setFocusedField && setFocusedField(`experience-${index}-position`)}
+                                    onBlur={() => {
+                                        setTimeout(() => {
+                                            if (setFocusedField && focusedField === 'professional_summary') {
+                                                if (!listeningRef?.current) setFocusedField(null);
+                                            }
+                                        }, 100);
+                                    }}
+                                    type="text"
+                                    placeholder='Job Title'
+                                    className='px-3 py-2 text-sm rounded-lg'
+                                />
 
                                 <input value={experience.start_date || ""} onChange={(e) => updateExperience(index, "start_date", e.target.value)} type="month" className='px-3 py-2 text-sm rounded-lg' />
 
@@ -97,17 +126,30 @@ const ExperienceForm = ({ data, onChange }) => {
                             <div className='space-y-2'>
                                 <div className='flex items-center justify-between'>
                                     <label className='text-sm font-medium text-gray-700'>Job Description</label>
-                                    <button onClick={()=>generateDescription(index)} disabled={generatingIndex === index || !experience.position || !experience.company} className='flex items-center gap-1 px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded hover:bg-purple-200 transition-colors disabled:opacity-50'>
+                                    <button onClick={() => generateDescription(index)} disabled={generatingIndex === index || !experience.position || !experience.company} className='flex items-center gap-1 px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded hover:bg-purple-200 transition-colors disabled:opacity-50'>
                                         {generatingIndex === index ? (
                                             <Loader2 className='w-3 h-3 animate-spin' />
                                         ) : (
                                             <Sparkles className='w-3 h-3' />
                                         )}
-                                        
+
                                         Enhance with AI
                                     </button>
                                 </div>
-                                <textarea value={experience.description || ""} onChange={(e) => updateExperience(index, "description", e.target.value)} rows={4} className='w-full text-sm px-3 py-2 rounded-lg resize-none' placeholder='Describe your key responsibilities and achievements...' />
+                                <textarea
+                                    value={experience.description || ""}
+                                    onChange={(e) => updateExperience(index, "description", e.target.value)}
+                                    onFocus={() => setFocusedField && setFocusedField(`experience-${index}-description`)}
+                                    onBlur={() => {
+                                        setTimeout(() => {
+                                            if (setFocusedField && focusedField === 'professional_summary') {
+                                                if (!listeningRef?.current) setFocusedField(null);
+                                            }
+                                        }, 100);
+                                    }}
+                                    rows={4}
+                                    className='w-full text-sm px-3 py-2 rounded-lg resize-none' placeholder='Describe your key responsibilities and achievements...'
+                                />
                             </div>
                         </div>
                     ))}
