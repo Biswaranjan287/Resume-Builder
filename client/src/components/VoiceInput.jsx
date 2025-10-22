@@ -32,17 +32,47 @@ const VoiceInput = ({ onTranscript, onFinalTranscript, focusedField }) => {
         }
     }, [finalTranscript, onTranscript, onFinalTranscript, resetTranscript])
 
-    const startListening = () => {
+    // const startListening = () => {
+    //     if (!(window.SpeechRecognition || window.webkitSpeechRecognition)) {
+    //         console.error('[VoiceInput] No Web Speech API available in this browser.')
+    //         return
+    //     }
+    //     resetTranscript()
+    //     SpeechRecognition.startListening({ continuous: true, language: 'en-IN' })
+    //     setListening(true)
+    //     startedRef.current = true
+    //     console.log('[VoiceInput] started, focusedField:', focusedField || 'none')
+    // }
+    const startListening = async () => {
         if (!(window.SpeechRecognition || window.webkitSpeechRecognition)) {
-            console.error('[VoiceInput] No Web Speech API available in this browser.')
-            return
+            console.error('[VoiceInput] No Web Speech API available in this browser.');
+            alert('Voice input is not supported in this browser. Please use Chrome/Edge on HTTPS.');
+            return;
         }
-        resetTranscript()
-        SpeechRecognition.startListening({ continuous: true, language: 'en-IN' })
-        setListening(true)
-        startedRef.current = true
-        console.log('[VoiceInput] started, focusedField:', focusedField || 'none')
-    }
+
+        if (!window.isSecureContext) {
+            console.error('[VoiceInput] Not in secure context (HTTPS).');
+            alert('Voice input requires HTTPS. Please open the site with https://');
+            return;
+        }
+
+        try {
+            // Request microphone permission
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            stream.getTracks().forEach(t => t.stop()); // stop after permission granted
+        } catch (err) {
+            console.error('Mic permission blocked or denied', err);
+            alert('Please allow microphone access for voice input.');
+            return;
+        }
+
+        resetTranscript();
+        SpeechRecognition.startListening({ continuous: true, language: 'en-IN' });
+        setListening(true);
+        startedRef.current = true;
+        console.log('[VoiceInput] started, focusedField:', focusedField || 'none');
+    };
+
 
     const stopListening = () => {
         SpeechRecognition.stopListening()
