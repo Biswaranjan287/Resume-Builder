@@ -99,13 +99,13 @@ const VoiceInput = ({ onTranscript, onFinalTranscript, focusedField }) => {
             {!listening ? (
                 <button
                     onClick={startListening}
-                    className="px-6 py-2 text-sm ring-purple-300 ring hover:ring-purple-400 bg-purple-100 text-purple-700 rounded hover:bg-purple-200 transition-colors disabled:opacity-50"
+                    className="w-full sm:w-auto px-6 py-2 text-sm ring-purple-300 ring hover:ring-purple-400 bg-purple-100 text-purple-700 rounded hover:bg-purple-200 transition-colors disabled:opacity-50"
                 >🎙️ Start Voice Input
                 </button>
             ) : (
                 <button
                     onClick={stopListening}
-                    className="px-6 py-2 text-sm ring-red-300 ring hover:ring-red-400 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors disabled:opacity-50"
+                    className="w-full sm:w-auto px-6 py-2 text-sm ring-red-300 ring hover:ring-red-400 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors disabled:opacity-50"
                 >⏹️ Stop Listening
                 </button>
             )}

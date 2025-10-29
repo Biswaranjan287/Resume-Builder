@@ -52,7 +52,7 @@ const ExperienceForm = ({ data, onChange, focusedField, setFocusedField }) => {
         <div className='space-y-6'>
             <div className='flex items-center justify-between'>
                 <div>
-                    <h3 className='flex items-center gap-2 text-lg font-semibold text-gray-900'> Professional Experience </h3>
+                    <h3 className='flex items-center gap-2 text-lg font-semibold text-gray-900'> al Experience </h3>
                     <p className='text-sm text-gray-500'>Add your job experience</p>
                 </div>
                 <button onClick={addExperience} className='flex items-center gap-2 px-3 py-1 text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors'>
